@@ -1,0 +1,12 @@
+pages:
+  stage: deploy
+  script:
+    - mkdir -p public
+    - cp index.html public/index.html
+    - cp tree.html public/tree.html
+    - cp bubbles.html public/bubbles.html
+  artifacts:
+    paths:
+      - public
+  only:
+    - main

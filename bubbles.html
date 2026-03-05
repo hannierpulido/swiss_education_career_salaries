@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swiss Education & Salary — Bubble Chart</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:wght@300;400;600&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#fff;font-family:'Crimson Pro',serif;color:#111;}
+  header{padding:1.4rem 3rem .9rem;border-bottom:1.5px solid #e8e8e8;
+    display:flex;align-items:flex-end;justify-content:space-between;gap:2rem;flex-wrap:wrap;}
+  h1{font-family:'Playfair Display',serif;font-size:clamp(1.1rem,2vw,1.75rem);
+    font-weight:400;letter-spacing:-.02em;line-height:1.15;}
+  h1 em{font-style:italic;color:#1a6b2e;}
+  .hr{font-family:'DM Mono',monospace;font-size:.54rem;color:#999;
+    letter-spacing:.08em;text-transform:uppercase;line-height:2;text-align:right;}
+  .legbar{display:flex;align-items:center;justify-content:space-between;
+    padding:.5rem 3rem;border-bottom:1px solid #e8e8e8;flex-wrap:wrap;gap:.4rem;}
+  .leg{display:flex;gap:1.2rem;flex-wrap:wrap;align-items:center;}
+  .li{display:flex;align-items:center;gap:.4rem;font-family:'DM Mono',monospace;
+    font-size:.56rem;letter-spacing:.07em;text-transform:uppercase;}
+  .sw{width:12px;height:12px;border-radius:50%;border:2px solid currentColor;}
+  .szleg{display:flex;align-items:center;gap:.9rem;}
+  .szit{display:flex;align-items:center;gap:.32rem;font-family:'DM Mono',monospace;
+    font-size:.49rem;color:#aaa;letter-spacing:.05em;}
+  .szc{border-radius:50%;border:1.5px solid #bbb;background:rgba(150,150,150,.1);flex-shrink:0;}
+  .wrap{overflow-x:auto;}
+  canvas{display:block;cursor:default;}
+  .tip{position:fixed;background:#fff;border:1px solid #ddd;border-left:3px solid #999;
+    border-radius:3px;padding:.5rem .85rem;font-family:'Crimson Pro',serif;font-size:13px;
+    pointer-events:none;opacity:0;transition:opacity .1s;
+    box-shadow:0 3px 14px rgba(0,0,0,.09);max-width:215px;z-index:100;}
+  .tip strong{font-family:'Playfair Display',serif;font-size:14px;display:block;margin-bottom:2px;}
+  .tip .sal{font-size:17px;font-weight:600;letter-spacing:-.01em;}
+  .tip .det{font-family:'DM Mono',monospace;font-size:7.5px;color:#aaa;margin-top:3px;letter-spacing:.05em;}
+  .tip .bdg{font-family:'DM Mono',monospace;font-size:7px;letter-spacing:.08em;
+    text-transform:uppercase;display:inline-block;padding:1px 5px;border-radius:2px;margin-bottom:4px;}
+  footer{padding:.5rem 3rem 1.3rem;border-top:1px solid #e8e8e8;
+    font-family:'DM Mono',monospace;font-size:.49rem;color:#ccc;letter-spacing:.06em;line-height:2.2;}
+  @media print{
+    body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    @page{size:A3 landscape;margin:8mm;}
+    .tip{display:none;} .wrap{width:100%;} canvas{width:100% !important;height:auto !important;}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Swiss Education &amp; Career Salary<br><em>Median Annual Gross — CHF 2024</em></h1>
+  <div class="hr">Companion to the Swiss Education Phylogenetic Tree<br>Sources: FSO, jobs.ch, Glassdoor, SalaryExpert 2024</div>
+</header>
+<div class="legbar">
+  <div class="leg">
+    <div class="li" style="color:#4a1a90"><div class="sw" style="background:rgba(74,26,144,.15)"></div>Sek C</div>
+    <div class="li" style="color:#a03010"><div class="sw" style="background:rgba(160,48,16,.15)"></div>Sek B · EBA/EFZ</div>
+    <div class="li" style="color:#8a6000"><div class="sw" style="background:rgba(138,96,0,.15)"></div>Sek A · EFZ/BMS</div>
+    <div class="li" style="color:#0a6080"><div class="sw" style="background:rgba(10,96,128,.15)"></div>Fachhochschule FH</div>
+    <div class="li" style="color:#1a6b2e"><div class="sw" style="background:rgba(26,107,46,.15)"></div>Gymnasium · Uni/ETH</div>
+  </div>
+  <div class="szleg">
+    <div class="szit"><div class="szc" style="width:12px;height:12px"></div>small workforce</div>
+    <div class="szit"><div class="szc" style="width:22px;height:22px"></div>medium</div>
+    <div class="szit"><div class="szc" style="width:36px;height:36px"></div>large workforce in CH</div>
+  </div>
+</div>
+<div class="wrap"><canvas id="c"></canvas></div>
+<div class="tip" id="tip"></div>
+<footer>
+  Median gross annual CHF · cross-checked FSO 2024, jobs.ch, Glassdoor, SalaryExpert &amp; sector surveys.
+  Track = minimum education typically required. Bubble area ∝ estimated workforce in Switzerland (FSO 2023).
+  Hover any bubble for exact salary and workforce figures.
+</footer>
+<script>
+// ── Track colours ──────────────────────────────────────────────────────────────
+const TM=[
+  {label:'Sek C / Realschule',   color:'#4a1a90', rgb:'74,26,144' },
+  {label:'Sek B · EBA/EFZ',     color:'#a03010', rgb:'160,48,16' },
+  {label:'Sek A · EFZ/BMS',     color:'#8a6000', rgb:'138,96,0'  },
+  {label:'Fachhochschule FH',    color:'#0a6080', rgb:'10,96,128' },
+  {label:'Gymnasium · Uni/ETH', color:'#1a6b2e', rgb:'26,107,46' },
+];
+
+// ── Dataset ────────────────────────────────────────────────────────────────────
+// Trimmed: removed niche/obscure (goldsmith, polymechanic, pc support,
+// draftsman, surveyor, sommelier, photographer, aircraft mechanic, archivist,
+// construction foreman, film director, micro-engineer, systems engineer,
+// environmental eng, cloud engineer, nuclear engineer, career officer)
+const DATA=[
+  // Sek C — 9 entries
+  {n:'Hairdresser',          sec:'Service',      t:0, s: 60000, w: 25},
+  {n:'Waiter',               sec:'Service',      t:0, s: 62000, w: 40},
+  {n:'Security Guard',       sec:'Public',       t:0, s: 62000, w: 30},
+  {n:'Retail Specialist',    sec:'Trade',        t:0, s: 65000, w: 80},
+  {n:'Childcare (FaBe)',     sec:'Social',       t:0, s: 68000, w: 45},
+  {n:'Truck Driver',         sec:'Logistics',    t:0, s: 70000, w: 50},
+  {n:'Painter / Gipser',     sec:'Trade',        t:0, s: 70000, w: 30},
+  {n:'Gardener',             sec:'Service',      t:0, s: 72000, w: 22},
+  {n:'Bricklayer',           sec:'Construction', t:0, s: 76000, w: 35},
+
+  // Sek B — trimmed to 12, unique salary spread
+  {n:'Retail Sales',         sec:'Trade',        t:1, s: 61000, w:220},
+  {n:'Hotel / Hospitality',  sec:'Service',      t:1, s: 63000, w: 85},
+  {n:'Cook / Chef',          sec:'Service',      t:1, s: 65000, w: 70},
+  {n:'Medical Asst.',        sec:'Health',       t:1, s: 70000, w: 35},
+  {n:'Carpenter',            sec:'Trade',        t:1, s: 75000, w: 55},
+  {n:'Electrician (EFZ)',    sec:'Trade',        t:1, s: 80000, w: 60},
+  {n:'IT Technician',        sec:'ICT',          t:1, s: 85000, w: 55},
+  {n:'Dental Hygienist',     sec:'Health',       t:1, s: 87000, w: 18},
+  {n:'Reg. Nurse',           sec:'Health',       t:1, s: 90000, w:130},
+  {n:'Bank Clerk',           sec:'Finance',      t:1, s: 92000, w: 60},
+  {n:'Police Officer',       sec:'Public',       t:1, s:100000, w: 40},
+  {n:'Chef de Cuisine',      sec:'Service',      t:1, s:110000, w: 12},
+
+  // Sek A — trimmed to 11, unique salary spread
+  {n:'Office Manager',       sec:'Business',     t:2, s: 82000, w:120},
+  {n:'Accountant',           sec:'Finance',      t:2, s: 86000, w: 90},
+  {n:'HR Specialist',        sec:'Business',     t:2, s: 90000, w: 60},
+  {n:'Primary Teacher',      sec:'Education',    t:2, s: 95000, w: 95},
+  {n:'Social Worker',        sec:'Social',       t:2, s: 97000, w: 70},
+  {n:'Lab Technician',       sec:'Science',      t:2, s: 99000, w: 22},
+  {n:'Nurse Specialist',     sec:'Health',       t:2, s:105000, w: 50},
+  {n:'Automation Engineer',  sec:'Engineering',  t:2, s:108000, w: 25},
+  {n:'Financial Controller', sec:'Finance',      t:2, s:115000, w: 40},
+  {n:'Tax Expert',           sec:'Finance',      t:2, s:150000, w: 20},
+  {n:'Hotel Director',       sec:'Service',      t:2, s:155000, w: 15},
+
+  // FH — trimmed to 13, no salary ties
+  {n:'Physiotherapist',      sec:'Health',       t:3, s: 90000, w: 40},
+  {n:'Marketing Manager',    sec:'Business',     t:3, s:100000, w: 70},
+  {n:'Business Manager',     sec:'Business',     t:3, s:108000, w:140},
+  {n:'Product Engineer',     sec:'Engineering',  t:3, s:112000, w: 85},
+  {n:'Financial Analyst',    sec:'Finance',      t:3, s:114000, w: 55},
+  {n:'Software Developer',   sec:'ICT',          t:3, s:116000, w:100},
+  {n:'Secondary Teacher',    sec:'Education',    t:3, s:118000, w: 80},
+  {n:'Electrical Engineer',  sec:'Engineering',  t:3, s:121000, w: 45},
+  {n:'Civil Engineer (FH)',  sec:'Engineering',  t:3, s:125000, w: 50},
+  {n:'IT Project Manager',   sec:'ICT',          t:3, s:127000, w: 40},
+  {n:'Data Scientist (FH)',  sec:'ICT',          t:3, s:130000, w: 35},
+  {n:'Cybersecurity Spec.',  sec:'ICT',          t:3, s:135000, w: 25},
+  {n:'Portfolio Manager',    sec:'Finance',      t:3, s:145000, w: 25},
+
+  // Gymnasium / Uni — 30 entries
+  {n:'Philosopher',          sec:'Humanities',   t:4, s: 74000, w:  4},
+  {n:'Linguist',             sec:'Humanities',   t:4, s: 78000, w:  6},
+  {n:'Historian',            sec:'Humanities',   t:4, s: 80000, w:  8},
+  {n:'Sociologist',          sec:'Humanities',   t:4, s: 82000, w:  8},
+  {n:'Political Scientist',  sec:'Humanities',   t:4, s: 86000, w:  7},
+  {n:'Translator / Interp.', sec:'Humanities',   t:4, s: 95000, w: 10},
+  {n:'Biologist',            sec:'Science',      t:4, s: 94000, w: 18},
+  {n:'Chemist',              sec:'Science',      t:4, s: 97000, w: 22},
+  {n:'Research Scientist',   sec:'Science',      t:4, s:105000, w: 28},
+  {n:'Physicist',            sec:'Science',      t:4, s:112000, w: 14},
+  {n:'Psychologist',         sec:'Education',    t:4, s:115000, w: 28},
+  {n:'Architect (ETH)',      sec:'Engineering',  t:4, s:115000, w: 20},
+  {n:'Veterinarian',         sec:'Medicine',     t:4, s:120000, w: 10},
+  {n:'Molecular Biologist',  sec:'Science',      t:4, s:120000, w: 18},
+  {n:'Computer Scientist',   sec:'ICT',          t:4, s:128000, w: 22},
+  {n:'High School Teacher',  sec:'Education',    t:4, s:130000, w: 50},
+  {n:'Economist',            sec:'Finance',      t:4, s:134000, w: 40},
+  {n:'Pharmacist',           sec:'Medicine',     t:4, s:140000, w: 22},
+  {n:'ETH Engineer',         sec:'Engineering',  t:4, s:144000, w: 55},
+  {n:'Sr. Software Eng.',    sec:'ICT',          t:4, s:145000, w: 60},
+  {n:'Actuary',              sec:'Finance',      t:4, s:145000, w: 12},
+  {n:'Corporate Lawyer',     sec:'Law',          t:4, s:150000, w: 38},
+  {n:'Software Architect',   sec:'ICT',          t:4, s:150000, w: 25},
+  {n:'Airline Pilot',        sec:'Transport',    t:4, s:160000, w: 20},
+  {n:'Sr. Chemist (pharma)', sec:'Science',      t:4, s:160000, w: 20},
+  {n:'Judge',                sec:'Law',          t:4, s:165000, w: 12},
+  {n:'Dentist',              sec:'Medicine',     t:4, s:170000, w: 15},
+  {n:'AI / ML Lead',         sec:'ICT',          t:4, s:170000, w: 20},
+  {n:'General Practitioner', sec:'Medicine',     t:4, s:180000, w: 45},
+  {n:'University Professor', sec:'Education',    t:4, s:190000, w: 18},
+  {n:'Investment Banker',    sec:'Finance',      t:4, s:220000, w: 30},
+  {n:'Law Firm Partner',     sec:'Law',          t:4, s:250000, w: 12},
+  {n:'Surgeon',              sec:'Medicine',     t:4, s:280000, w: 18},
+];
+
+// ── Canvas ─────────────────────────────────────────────────────────────────────
+const canvas=document.getElementById('c');
+const ctx=canvas.getContext('2d');
+const tip=document.getElementById('tip');
+const DPR=Math.min(window.devicePixelRatio||1,2);
+
+// Per-row pixel heights — denser rows get more space
+// order: index = track number (0=SekC … 4=Gym)
+const ROW_H=[238, 246, 204, 301, 210];
+const N=TM.length;
+const ML=170, MR=20, MT=52, MB=52;
+const CW=1500;
+const CH=MT+ROW_H.reduce((a,b)=>a+b,0)+MB;
+
+canvas.style.width=CW+'px';
+canvas.style.height=CH+'px';
+canvas.width=CW*DPR;
+canvas.height=CH*DPR;
+ctx.scale(DPR,DPR);
+const PW=CW-ML-MR;
+
+const SAL_MIN=50000, SAL_MAX=295000;
+function salX(s){return ML+(s-SAL_MIN)/(SAL_MAX-SAL_MIN)*PW;}
+
+// Row centres: draw order top→bottom = t=4,3,2,1,0
+function rowCY(t){
+  const drawOrder=[4,3,2,1,0];
+  let y=MT;
+  for(const o of drawOrder){
+    y+=ROW_H[o]/2;
+    if(o===t) return y;
+    y+=ROW_H[o]/2;
+  }
+}
+
+// Radius: sqrt-area scale, range 13–38px
+const R_MIN=12, R_MAX=32;
+function wR(w){return R_MIN+Math.sqrt(w/220)*(R_MAX-R_MIN);}
+
+// ── Greedy placement ───────────────────────────────────────────────────────────
+// X = salary (fixed). Y = search from centre outward until no collision.
+// Fine 1px steps, 600 attempts — exploits full row height.
+const PAD=4;
+const placed=[];
+
+for(let t=0;t<N;t++){
+  const cy=rowCY(t);
+  const halfRow=ROW_H[t]/2-2;
+
+  // Sort large→small so big bubbles anchor first
+  const track=DATA.filter(d=>d.t===t)
+    .map(d=>({...d,tm:TM[t],x:salX(d.s),r:wR(d.w)}))
+    .sort((a,b)=>b.r-a.r);
+
+  for(const node of track){
+    const {x,r}=node;
+    let py=cy, found=false;
+
+    for(let step=0;step<=1000;step++){
+      // Alternate above / below centre
+      const offsets=step===0?[0]:[-(step), +(step)];
+      for(const off of offsets){
+        const tryY=cy+off;
+        if(tryY-r < cy-halfRow || tryY+r > cy+halfRow) continue;
+        let ok=true;
+        for(const p of placed){
+          const dx=p.x-x, dy=p.y-tryY;
+          if(dx*dx+dy*dy < (p.r+r+PAD)**2){ok=false;break;}
+        }
+        if(ok){py=tryY;found=true;break;}
+      }
+      if(found) break;
+    }
+    placed.push({...node,y:py});
+  }
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function fmtK(n){return Math.round(n/1000)+'k';}
+function fmt(n){return 'CHF\u00a0'+n.toLocaleString('de-CH');}
+
+function pill(x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+function draw(){
+  ctx.clearRect(0,0,CW,CH);
+
+  // Salary grid
+  const grid=[55000,75000,100000,125000,150000,175000,200000,225000,250000,275000];
+  grid.forEach(s=>{
+    const x=salX(s), maj=s%100000===0;
+    ctx.beginPath();
+    ctx.strokeStyle=maj?'#e0e0e0':'#f0f0f0';
+    ctx.lineWidth=maj?1:0.6;
+    ctx.moveTo(x,MT-10);ctx.lineTo(x,CH-MB+4);
+    ctx.stroke();
+    ctx.fillStyle=maj?'#b8b8b8':'#d0d0d0';
+    ctx.font=`${maj?9:8}px "DM Mono",monospace`;
+    ctx.textAlign='center';
+    ctx.fillText((s/1000)+'k',x,CH-MB+18);
+  });
+
+  // X-axis baseline + label
+  ctx.beginPath();ctx.strokeStyle='#e8e8e8';ctx.lineWidth=1;
+  ctx.moveTo(ML,CH-MB+4);ctx.lineTo(ML+PW,CH-MB+4);ctx.stroke();
+  ctx.fillStyle='#bbb';ctx.font='8.5px "DM Mono",monospace';ctx.textAlign='center';
+  ctx.fillText('MEDIAN ANNUAL GROSS SALARY (CHF)',ML+PW/2,CH-10);
+
+  // Track bands, dividers, centre lines, left labels
+  for(let t=0;t<N;t++){
+    const cy=rowCY(t);
+    const {color,rgb,label}=TM[t];
+    const hb=ROW_H[t]/2;
+
+    // Tinted band
+    ctx.fillStyle=`rgba(${rgb},.042)`;
+    ctx.fillRect(ML,cy-hb,PW,ROW_H[t]);
+
+    // Divider below row
+    ctx.beginPath();ctx.strokeStyle='#ebebeb';ctx.lineWidth=1;
+    ctx.moveTo(ML,cy+hb);ctx.lineTo(ML+PW,cy+hb);ctx.stroke();
+
+    // Centre dashed line
+    ctx.beginPath();ctx.strokeStyle=`rgba(${rgb},.18)`;ctx.lineWidth=0.9;
+    ctx.setLineDash([4,9]);
+    ctx.moveTo(ML,cy);ctx.lineTo(ML+PW,cy);
+    ctx.stroke();ctx.setLineDash([]);
+
+    // Left label pill
+    const pw=158,ph=30;
+    ctx.fillStyle=`rgba(${rgb},.09)`;
+    pill(ML-14-pw,cy-ph/2,pw,ph,4);ctx.fill();
+    ctx.strokeStyle=`rgba(${rgb},.28)`;ctx.lineWidth=0.8;
+    pill(ML-14-pw,cy-ph/2,pw,ph,4);ctx.stroke();
+    ctx.fillStyle=color;
+    ctx.font=`italic 11.5px "Playfair Display",serif`;
+    ctx.textAlign='right';
+    ctx.fillText(label,ML-20,cy+4);
+  }
+
+  // Bubble fills
+  placed.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${p.tm.rgb},.13)`;ctx.fill();
+  });
+  // Bubble strokes
+  placed.forEach(p=>{
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(${p.tm.rgb},.52)`;ctx.lineWidth=1.3;ctx.stroke();
+  });
+  // Labels: name + salary, clipped inside each bubble
+  placed.forEach(p=>{
+    ctx.save();
+    ctx.beginPath();ctx.arc(p.x,p.y,p.r-1.5,0,Math.PI*2);ctx.clip();
+
+    const rgb=p.tm.rgb;
+    const fs=Math.max(6,Math.min(10.5,p.r*0.46));
+    const fsK=Math.max(5.5,Math.min(8.5,p.r*0.35));
+    const maxW=p.r*1.80;
+
+    ctx.font=`600 ${fs}px "Crimson Pro",serif`;
+    ctx.textAlign='center';
+    const words=p.n.split(' ');
+    const lines=[];let cur='';
+    for(const w of words){
+      const test=cur?cur+' '+w:w;
+      if(ctx.measureText(test).width>maxW&&cur){lines.push(cur);cur=w;}
+      else cur=test;
+    }
+    if(cur)lines.push(cur);
+
+    const lh=fs*1.18;
+    const salH=fsK*1.3;
+    const totalH=lines.length*lh+salH;
+    const sy=p.y-totalH/2+lh*0.82;
+
+    ctx.fillStyle=`rgba(${rgb},.93)`;
+    lines.forEach((ln,i)=>{
+      ctx.font=`600 ${fs}px "Crimson Pro",serif`;
+      ctx.fillText(ln,p.x,sy+i*lh);
+    });
+    ctx.font=`500 ${fsK}px "DM Mono",monospace`;
+    ctx.fillStyle=`rgba(${rgb},.62)`;
+    ctx.fillText(fmtK(p.s),p.x,sy+lines.length*lh+1);
+    ctx.restore();
+  });
+}
+
+draw();
+
+// Tooltip
+canvas.addEventListener('mousemove',e=>{
+  const rect=canvas.getBoundingClientRect();
+  const mx=(e.clientX-rect.left)*(CW/rect.width);
+  const my=(e.clientY-rect.top)*(CH/rect.height);
+  let hit=null;
+  for(let i=placed.length-1;i>=0;i--){
+    const p=placed[i];
+    if((p.x-mx)**2+(p.y-my)**2<=(p.r+4)**2){hit=p;break;}
+  }
+  if(hit){
+    const {color,rgb,label}=hit.tm;
+    tip.style.borderLeftColor=color;
+    tip.innerHTML=`<strong>${hit.n}</strong>
+      <span class="bdg" style="background:rgba(${rgb},.1);color:${color};border:1px solid rgba(${rgb},.3)">${label}</span>&thinsp;<span style="font-family:'DM Mono',monospace;font-size:7px;color:#bbb">${hit.sec}</span><br>
+      <span class="sal" style="color:${color}">${fmt(hit.s)} / yr</span>
+      <div class="det">≈&thinsp;${hit.w}k people employed in CH</div>`;
+    tip.style.opacity='1';
+    tip.style.left=(e.clientX+16)+'px';
+    tip.style.top=(e.clientY-12)+'px';
+    canvas.style.cursor='pointer';
+  }else{
+    tip.style.opacity='0';
+    canvas.style.cursor='default';
+  }
+});
+canvas.addEventListener('mouseleave',()=>{tip.style.opacity='0';});
+</script>
+</body>
+</html>

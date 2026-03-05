@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swiss School System — Career Phylogenetic Tree (Print)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Crimson+Pro:wght@300;400;600&display=swap');
+
+  :root {
+    --bg: #ffffff;
+    --gym:      #1a6b2e;   /* deep forest green */
+    --gym-fill: rgba(232,245,236,0.85);
+    --gym-mid:  #4a9e5c;
+    --secA:     #7a5200;   /* dark amber */
+    --secA-fill:rgba(253,243,220,0.85);
+    --secA-mid: #b07820;
+    --secB:     #8b2c0a;   /* deep terracotta */
+    --secB-fill:rgba(253,232,224,0.85);
+    --secB-mid: #c05030;
+    --secC:     #3d1f80;   /* deep violet */
+    --secC-fill:rgba(237,232,251,0.85);
+    --secC-mid: #7050c0;
+    --bridge:   #0a6050;   /* teal */
+    --bridge-fill:rgba(224,244,240,0.85);
+    --text:     #1a1a1a;
+    --muted:    #777777;
+    --line:     #cccccc;
+    --divider:  #e0e0e0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #fff;
+    color: var(--text);
+    font-family: 'Crimson Pro', serif;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 2.5rem 4rem 1.8rem;
+    border-bottom: 1.5px solid var(--divider);
+    display: flex;
+    align-items: flex-end;
+    gap: 3rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: #111;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--gym);
+  }
+
+  .subtitle {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 2;
+    flex-shrink: 0;
+  }
+
+  .legend {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem 4rem;
+    border-bottom: 1px solid var(--divider);
+    flex-wrap: wrap;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+  }
+
+  .tree-container {
+    padding: 2rem 2rem 4rem;
+    overflow-x: auto;
+  }
+
+  svg {
+    display: block;
+    margin: 0 auto;
+  }
+
+  .node-label {
+    font-family: 'Crimson Pro', serif;
+    font-size: 12px;
+    dominant-baseline: middle;
+    text-anchor: middle;
+  }
+
+  .node-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5px;
+    fill: #888;
+    dominant-baseline: middle;
+    text-anchor: middle;
+    letter-spacing: 0.04em;
+  }
+
+  .branch-label {
+    font-family: 'Playfair Display', serif;
+    font-size: 14px;
+    font-style: italic;
+    dominant-baseline: middle;
+    text-anchor: middle;
+  }
+
+  .year-marker {
+    font-family: 'DM Mono', monospace;
+    font-size: 7.5px;
+    fill: #aaa;
+    letter-spacing: 0.1em;
+    text-anchor: end;
+  }
+
+  .tip {
+    font-family: 'Crimson Pro', serif;
+    font-size: 11px;
+    dominant-baseline: middle;
+    text-anchor: start;
+  }
+
+  .tip-sub {
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    fill: #999;
+    dominant-baseline: middle;
+    text-anchor: start;
+  }
+
+  .tip-sub { fill: #666; }
+  .arrow-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 7px;
+    letter-spacing: 0.06em;
+    text-anchor: middle;
+  }
+
+  .grade-line {
+    stroke: #ebebeb;
+    stroke-width: 1;
+    stroke-dasharray: 2 6;
+  }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    @page { size: A3 landscape; margin: 8mm; }
+    .tree-container { overflow: visible; }
+    svg { width: 100% !important; height: auto !important; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Swiss Education<br><em>Phylogenetic Tree</em></h1>
+  </div>
+  <div class="subtitle">
+    Career branching after 6th grade<br>
+    Canton-level tracking system<br>
+    Switzerland · Volksschule → Berufsbildung / Hochschule<br>
+    Salaries: median gross CHF / yr · FSO / jobs.ch 2024
+  </div>
+</header>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#c8ecd0;border-color:var(--gym)"></div> Gymnasium</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fdf3dc;border-color:var(--secA)"></div> Sekundarschule A</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fde8e0;border-color:var(--secB)"></div> Sekundarschule B</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ede8fb;border-color:var(--secC)"></div> Sekundarschule C / Realschule</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#daf0ea;border-color:var(--bridge)"></div> Bridge / Pathway</div>
+  <div class="legend-item" style="gap:0.7rem"><span style="font-family:'DM Mono',monospace;font-size:0.65rem;color:#aaa;letter-spacing:0.05em">- - -</span> Optional / conditional path</div>
+</div>
+
+<div class="tree-container">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1469" viewBox="0 0 1200 1469">
+  <rect width="1200" height="1469" fill="#ffffff"/>
+  <rect x="75" y="60" width="22" height="1389" rx="2" fill="#f7f7f7"/>
+  <text class="year-marker" x="82" y="130">6. Klasse</text>
+  <text class="year-marker" x="82" y="240">7–9. Klasse</text>
+  <text class="year-marker" x="82" y="490">10–12. Klasse</text>
+  <text class="year-marker" x="82" y="780">Abschluss</text>
+  <line class="grade-line" x1="100" y1="165" x2="1180" y2="165"/>
+  <line class="grade-line" x1="100" y1="430" x2="1180" y2="430"/>
+  <line class="grade-line" x1="100" y1="760" x2="1180" y2="760"/>
+
+  <!-- ROOT -->
+  <rect x="430" y="90" width="200" height="48" rx="4" fill="#f5f5f5" stroke="#999" stroke-width="1.5"/>
+  <text class="node-label" x="530" y="109" font-size="13" fill="#111" font-family="'Playfair Display',serif" font-style="italic">Primarschule</text>
+  <text class="node-sub" x="530" y="127">1.– 6. Klasse · Ages 6–12</text>
+  <line x1="530" y1="138" x2="530" y2="165" stroke="#999" stroke-width="2"/>
+  <path d="M220,165 L960,165" stroke="#ccc" stroke-width="2"/>
+  <line x1="220" y1="165" x2="220" y2="205" stroke="var(--gym)" stroke-width="2"/>
+  <line x1="480" y1="165" x2="480" y2="205" stroke="var(--secA)" stroke-width="2"/>
+  <line x1="720" y1="165" x2="720" y2="205" stroke="var(--secB)" stroke-width="2"/>
+  <line x1="960" y1="165" x2="960" y2="205" stroke="var(--secC)" stroke-width="2"/>
+
+  <!-- GYMNASIUM -->
+  <rect x="110" y="205" width="220" height="52" rx="4" fill="var(--gym-fill)" stroke="var(--gym)" stroke-width="1.5"/>
+  <text class="branch-label" x="220" y="224" fill="var(--gym)">Gymnasium</text>
+  <text class="node-sub" x="220" y="243">Langgymnasium · Ages 12–19</text>
+  <line x1="220" y1="257" x2="220" y2="430" stroke="var(--gym)" stroke-width="1.5"/>
+  <rect x="130" y="430" width="180" height="44" rx="4" fill="var(--gym-fill)" stroke="var(--gym)" stroke-width="1.5"/>
+  <text class="node-label" x="220" y="448" fill="var(--gym)" font-style="italic" font-family="'Playfair Display',serif">Matura</text>
+  <text class="node-sub" x="220" y="463">Gymnasiale Maturität · Age 18/19</text>
+  <line x1="220" y1="474" x2="220" y2="520" stroke="var(--gym)" stroke-width="1.5"/>
+  <rect x="115" y="520" width="210" height="44" rx="4" fill="var(--gym-fill)" stroke="var(--gym)" stroke-width="2"/>
+  <text class="node-label" x="220" y="538" fill="var(--gym)" font-size="13" font-family="'Playfair Display',serif" font-style="italic">Universität / ETH</text>
+  <text class="node-sub" x="220" y="555">All faculties open · BSc → MSc → PhD</text>
+  <line x1="220" y1="564" x2="220" y2="600" stroke="var(--gym)" stroke-width="1"/>
+  <path d="M130,600 L310,600" stroke="var(--gym-mid)" stroke-width="1.5"/>
+
+  <line x1="130" y1="600" x2="130" y2="625" stroke="var(--gym)" stroke-width="1"/>
+  <circle cx="130" cy="625" r="4" fill="var(--gym)"/>
+  <text class="tip" x="142" y="625" fill="var(--gym)">Medicine &amp; Health Sciences</text>
+  <text class="tip-sub" x="142" y="643">General Practitioner · CHF 180k</text>
+  <text class="tip-sub" x="142" y="656">Surgeon · CHF 280k</text>
+  <text class="tip-sub" x="142" y="669">Dentist · CHF 170k</text>
+  <text class="tip-sub" x="142" y="682">Pharmacist · CHF 140k</text>
+
+  <line x1="175" y1="600" x2="175" y2="715" stroke="var(--gym)" stroke-width="1"/>
+  <circle cx="175" cy="715" r="4" fill="var(--gym)"/>
+  <text class="tip" x="187" y="715" fill="var(--gym)">Law &amp; Political Science</text>
+  <text class="tip-sub" x="187" y="733">Corporate Lawyer · CHF 150k</text>
+  <text class="tip-sub" x="187" y="746">Law Firm Partner · CHF 250k</text>
+  <text class="tip-sub" x="187" y="759">Judge · CHF 165k</text>
+
+  <line x1="220" y1="600" x2="220" y2="792" stroke="var(--gym)" stroke-width="1"/>
+  <circle cx="220" cy="792" r="4" fill="var(--gym)"/>
+  <text class="tip" x="232" y="792" fill="var(--gym)">Engineering &amp; ICT</text>
+  <text class="tip-sub" x="232" y="810">ETH Engineer · CHF 144k</text>
+  <text class="tip-sub" x="232" y="823">Sr. Software Eng. · CHF 145k</text>
+  <text class="tip-sub" x="232" y="836">AI / ML Lead · CHF 170k</text>
+  <text class="tip-sub" x="232" y="849">Software Architect · CHF 150k</text>
+
+  <line x1="265" y1="600" x2="265" y2="882" stroke="var(--gym)" stroke-width="1"/>
+  <circle cx="265" cy="882" r="4" fill="var(--gym)"/>
+  <text class="tip" x="277" y="882" fill="var(--gym)">Sciences &amp; Research</text>
+  <text class="tip-sub" x="277" y="900">Molecular Biologist · CHF 120k</text>
+  <text class="tip-sub" x="277" y="913">Research Scientist · CHF 105k</text>
+  <text class="tip-sub" x="277" y="926">Physicist · CHF 112k</text>
+  <text class="tip-sub" x="277" y="939">Chemist · CHF 97k</text>
+
+  <line x1="310" y1="600" x2="310" y2="972" stroke="var(--gym)" stroke-width="1"/>
+  <circle cx="310" cy="972" r="4" fill="var(--gym)"/>
+  <text class="tip" x="322" y="972" fill="var(--gym)">Economics &amp; Finance</text>
+  <text class="tip-sub" x="322" y="990">Economist · CHF 134k</text>
+  <text class="tip-sub" x="322" y="1003">Investment Banker · CHF 220k</text>
+  <text class="tip-sub" x="322" y="1016">Actuary · CHF 145k</text>
+  <text class="tip-sub" x="322" y="1029">Univ. Professor · CHF 190k</text>
+
+  <line x1="130" y1="695" x2="130" y2="1062" stroke="var(--gym-mid)" stroke-width="0.7" stroke-dasharray="3 4"/>
+  <circle cx="130" cy="1062" r="3.5" fill="var(--gym-mid)"/>
+  <text class="tip" x="142" y="1062" fill="var(--gym-mid)">Humanities &amp; Social Sciences</text>
+  <text class="tip-sub" x="142" y="1080">Psychologist · CHF 115k</text>
+  <text class="tip-sub" x="142" y="1093">High School Teacher · CHF 130k</text>
+  <text class="tip-sub" x="142" y="1106">Sociologist · CHF 82k</text>
+  <text class="tip-sub" x="142" y="1119">Historian · CHF 80k</text>
+  <text class="tip-sub" x="142" y="1132">Philosopher · CHF 74k</text>
+
+  <line x1="175" y1="772" x2="175" y2="1165" stroke="var(--gym-mid)" stroke-width="0.7" stroke-dasharray="3 4"/>
+  <circle cx="175" cy="1165" r="3.5" fill="var(--gym-mid)"/>
+  <text class="tip" x="187" y="1165" fill="var(--gym-mid)">Arts &amp; Design</text>
+  <text class="tip-sub" x="187" y="1183">Computer Scientist · CHF 128k</text>
+  <text class="tip-sub" x="187" y="1196">Airline Pilot · CHF 160k</text>
+  <text class="tip-sub" x="187" y="1209">Translator / Interp. · CHF 95k</text>
+
+  <!-- SEKUNDARSCHULE A -->
+  <rect x="375" y="205" width="210" height="52" rx="4" fill="var(--secA-fill)" stroke="var(--secA)" stroke-width="1.5"/>
+  <text class="branch-label" x="480" y="224" fill="var(--secA)">Sekundarschule A</text>
+  <text class="node-sub" x="480" y="243">Anforderungstyp A · Ages 12–15</text>
+  <line x1="480" y1="257" x2="480" y2="430" stroke="var(--secA)" stroke-width="1.5"/>
+  <rect x="395" y="430" width="170" height="44" rx="4" fill="var(--secA-fill)" stroke="var(--secA)" stroke-width="1"/>
+  <text class="node-label" x="480" y="448" fill="var(--secA)" font-family="'Playfair Display',serif" font-style="italic">Sek-A Abschluss</text>
+  <text class="node-sub" x="480" y="463">Age 15 · Mittlere Reife</text>
+  <path d="M395,452 Q320,452 310,500 Q300,540 290,564" stroke="var(--bridge)" stroke-width="1" fill="none" stroke-dasharray="4 3"/>
+  <text class="arrow-label" x="338" y="505" fill="var(--bridge)">→ Kurzgymnasium</text>
+  <line x1="480" y1="474" x2="480" y2="510" stroke="var(--secA)" stroke-width="1.2"/>
+  <path d="M430,510 L530,510" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="430" y1="510" x2="430" y2="540" stroke="var(--secA)" stroke-width="1"/>
+  <line x1="530" y1="510" x2="530" y2="540" stroke="var(--secA-mid)" stroke-width="1"/>
+  <rect x="350" y="540" width="160" height="40" rx="3" fill="var(--secA-fill)" stroke="var(--secA)" stroke-width="1"/>
+  <text class="node-label" x="430" y="555" fill="var(--secA)" font-size="11">Berufslehre EFZ</text>
+  <text class="node-sub" x="430" y="570">Kaufm., Technik, Gesundheit…</text>
+  <rect x="465" y="540" width="130" height="40" rx="3" fill="var(--secA-fill)" stroke="var(--secA-mid)" stroke-width="1"/>
+  <text class="node-label" x="530" y="555" fill="var(--secA-mid)" font-size="11">FMS / BMS</text>
+  <text class="node-sub" x="530" y="570">Fachmatura / Berufsmatura</text>
+  <line x1="430" y1="580" x2="430" y2="615" stroke="var(--secA)" stroke-width="1"/>
+  <path d="M370,615 L490,615" stroke="#ccc" stroke-width="1"/>
+
+  <line x1="370" y1="615" x2="370" y2="640" stroke="var(--secA)" stroke-width="1"/>
+  <circle cx="370" cy="640" r="4" fill="var(--secA)"/>
+  <text class="tip" x="382" y="640" fill="var(--secA)">Kaufmännische Berufe</text>
+  <text class="tip-sub" x="382" y="658">Office Manager · CHF 82k</text>
+  <text class="tip-sub" x="382" y="671">Accountant · CHF 86k</text>
+  <text class="tip-sub" x="382" y="684">HR Specialist · CHF 90k</text>
+  <text class="tip-sub" x="382" y="697">Graphic Designer · CHF 90k</text>
+
+  <line x1="430" y1="615" x2="430" y2="730" stroke="var(--secA)" stroke-width="1"/>
+  <circle cx="430" cy="730" r="4" fill="var(--secA)"/>
+  <text class="tip" x="442" y="730" fill="var(--secA)">Technische Berufe</text>
+  <text class="tip-sub" x="442" y="748">Lab Technician · CHF 95k</text>
+  <text class="tip-sub" x="442" y="761">Automation Engineer · CHF 105k</text>
+  <text class="tip-sub" x="442" y="774">Primary Teacher · CHF 95k</text>
+
+  <line x1="490" y1="615" x2="490" y2="807" stroke="var(--secA)" stroke-width="1"/>
+  <circle cx="490" cy="807" r="4" fill="var(--secA)"/>
+  <text class="tip" x="502" y="807" fill="var(--secA)">Gesundheit &amp; Soziales</text>
+  <text class="tip-sub" x="502" y="825">Nurse Specialist · CHF 105k</text>
+  <text class="tip-sub" x="502" y="838">Social Worker · CHF 97k</text>
+  <text class="tip-sub" x="502" y="851">Financial Controller · CHF 115k</text>
+  <text class="tip-sub" x="502" y="864">Tax Expert · CHF 150k</text>
+
+  <line x1="530" y1="580" x2="530" y2="907" stroke="var(--secA-mid)" stroke-width="1.2"/>
+  <rect x="465" y="907" width="130" height="38" rx="3" fill="var(--secA-fill)" stroke="var(--secA-mid)" stroke-width="1.2"/>
+  <text class="node-label" x="530" y="922" fill="var(--secA-mid)" font-size="11">Fachhochschule FH</text>
+  <text class="node-sub" x="530" y="936">BSc Applied / MSc</text>
+  <line x1="530" y1="945" x2="530" y2="977" stroke="var(--secA-mid)" stroke-width="1"/>
+  <path d="M470,977 L590,977" stroke="#ccc" stroke-width="1"/>
+
+  <line x1="470" y1="977" x2="470" y2="1062" stroke="var(--secA-mid)" stroke-width="1"/>
+  <circle cx="470" cy="1062" r="4" fill="var(--secA-mid)"/>
+  <text class="tip" x="482" y="1062" fill="var(--secA-mid)">Business &amp; Management</text>
+  <text class="tip-sub" x="482" y="1080">Business Manager · CHF 108k</text>
+  <text class="tip-sub" x="482" y="1093">Marketing Manager · CHF 100k</text>
+  <text class="tip-sub" x="482" y="1106">Portfolio Manager · CHF 145k</text>
+
+  <line x1="530" y1="977" x2="530" y2="1139" stroke="var(--secA-mid)" stroke-width="1"/>
+  <circle cx="530" cy="1139" r="4" fill="var(--secA-mid)"/>
+  <text class="tip" x="542" y="1139" fill="var(--secA-mid)">Engineering (Applied)</text>
+  <text class="tip-sub" x="542" y="1157">Software Developer · CHF 115k</text>
+  <text class="tip-sub" x="542" y="1170">Civil Engineer (FH) · CHF 125k</text>
+  <text class="tip-sub" x="542" y="1183">Product Engineer · CHF 110k</text>
+  <text class="tip-sub" x="542" y="1196">Data Scientist (FH) · CHF 130k</text>
+
+  <line x1="590" y1="977" x2="590" y2="1229" stroke="var(--secA-mid)" stroke-width="1"/>
+  <circle cx="590" cy="1229" r="4" fill="var(--secA-mid)"/>
+  <text class="tip" x="602" y="1229" fill="var(--secA-mid)">Social Work &amp; Education</text>
+  <text class="tip-sub" x="602" y="1247">Secondary Teacher · CHF 115k</text>
+  <text class="tip-sub" x="602" y="1260">Physiotherapist · CHF 90k</text>
+  <text class="tip-sub" x="602" y="1273">IT Project Manager · CHF 125k</text>
+  <text class="tip-sub" x="602" y="1286">Cybersecurity Spec. · CHF 135k</text>
+
+  <!-- SEKUNDARSCHULE B -->
+  <rect x="615" y="205" width="210" height="52" rx="4" fill="var(--secB-fill)" stroke="var(--secB)" stroke-width="1.5"/>
+  <text class="branch-label" x="720" y="224" fill="var(--secB)">Sekundarschule B</text>
+  <text class="node-sub" x="720" y="243">Anforderungstyp B · Ages 12–15</text>
+  <line x1="720" y1="257" x2="720" y2="430" stroke="var(--secB)" stroke-width="1.5"/>
+  <rect x="635" y="430" width="170" height="44" rx="4" fill="var(--secB-fill)" stroke="var(--secB)" stroke-width="1"/>
+  <text class="node-label" x="720" y="448" fill="var(--secB)" font-family="'Playfair Display',serif" font-style="italic">Sek-B Abschluss</text>
+  <text class="node-sub" x="720" y="463">Age 15 · Volksschule</text>
+  <line x1="720" y1="474" x2="720" y2="510" stroke="var(--secB)" stroke-width="1.2"/>
+  <path d="M665,510 L775,510" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="665" y1="510" x2="665" y2="540" stroke="var(--secB)" stroke-width="1"/>
+  <line x1="775" y1="510" x2="775" y2="540" stroke="var(--secB-mid)" stroke-width="1"/>
+  <rect x="590" y="540" width="150" height="40" rx="3" fill="var(--secB-fill)" stroke="var(--secB)" stroke-width="1"/>
+  <text class="node-label" x="665" y="555" fill="var(--secB)" font-size="11">Berufslehre EBA</text>
+  <text class="node-sub" x="665" y="570">2-year basic apprenticeship</text>
+  <rect x="712" y="540" width="125" height="40" rx="3" fill="var(--secB-fill)" stroke="var(--secB-mid)" stroke-width="1"/>
+  <text class="node-label" x="775" y="555" fill="var(--secB-mid)" font-size="11">→ EFZ upgrade</text>
+  <text class="node-sub" x="775" y="570">+1 year if qualified</text>
+  <line x1="665" y1="580" x2="665" y2="615" stroke="var(--secB)" stroke-width="1"/>
+  <path d="M615,615 L715,615" stroke="#ccc" stroke-width="1"/>
+
+  <line x1="615" y1="615" x2="615" y2="640" stroke="var(--secB)" stroke-width="1"/>
+  <circle cx="615" cy="640" r="4" fill="var(--secB)"/>
+  <text class="tip" x="627" y="640" fill="var(--secB)">Gastgewerbe &amp; Handel</text>
+  <text class="tip-sub" x="627" y="658">Retail Sales · CHF 61k</text>
+  <text class="tip-sub" x="627" y="671">Cook / Chef · CHF 65k</text>
+  <text class="tip-sub" x="627" y="684">Hotel / Hospitality · CHF 63k</text>
+  <text class="tip-sub" x="627" y="697">Chef de Cuisine · CHF 110k</text>
+
+  <line x1="665" y1="615" x2="665" y2="730" stroke="var(--secB)" stroke-width="1"/>
+  <circle cx="665" cy="730" r="4" fill="var(--secB)"/>
+  <text class="tip" x="677" y="730" fill="var(--secB)">Handwerk &amp; Bau</text>
+  <text class="tip-sub" x="677" y="748">Carpenter · CHF 78k</text>
+  <text class="tip-sub" x="677" y="761">Electrician (EFZ) · CHF 80k</text>
+  <text class="tip-sub" x="677" y="774">Car Mechanic · CHF 78k</text>
+  <text class="tip-sub" x="677" y="787">Police Officer · CHF 100k</text>
+
+  <line x1="715" y1="615" x2="715" y2="820" stroke="var(--secB)" stroke-width="1"/>
+  <circle cx="715" cy="820" r="4" fill="var(--secB)"/>
+  <text class="tip" x="727" y="820" fill="var(--secB)">Pflege &amp; Betreuung</text>
+  <text class="tip-sub" x="727" y="838">Reg. Nurse · CHF 90k</text>
+  <text class="tip-sub" x="727" y="851">Dental Hygienist · CHF 85k</text>
+  <text class="tip-sub" x="727" y="864">Medical Asst. · CHF 70k</text>
+  <text class="tip-sub" x="727" y="877">IT Technician · CHF 85k</text>
+
+  <line x1="775" y1="580" x2="775" y2="910" stroke="var(--secB-mid)" stroke-width="1" stroke-dasharray="4 3"/>
+  <text class="arrow-label" x="800" y="880" fill="var(--secB-mid)">→ joins EFZ pool</text>
+  <circle cx="775" cy="910" r="4" fill="var(--secB-mid)"/>
+  <text class="tip" x="787" y="910" fill="var(--secB-mid)">Kaufm. / Technik EFZ</text>
+  <text class="tip-sub" x="787" y="928">Bank Clerk · CHF 90k</text>
+  <text class="tip-sub" x="787" y="941">Train Driver · CHF 95k</text>
+
+  <!-- SEKUNDARSCHULE C -->
+  <rect x="855" y="205" width="210" height="52" rx="4" fill="var(--secC-fill)" stroke="var(--secC)" stroke-width="1.5"/>
+  <text class="branch-label" x="960" y="224" fill="var(--secC)">Sekundarschule C</text>
+  <text class="node-sub" x="960" y="243">Realschule · Ages 12–15</text>
+  <line x1="960" y1="257" x2="960" y2="430" stroke="var(--secC)" stroke-width="1.5"/>
+  <rect x="875" y="430" width="170" height="44" rx="4" fill="var(--secC-fill)" stroke="var(--secC)" stroke-width="1"/>
+  <text class="node-label" x="960" y="448" fill="var(--secC)" font-family="'Playfair Display',serif" font-style="italic">Real Abschluss</text>
+  <text class="node-sub" x="960" y="463">Age 15 · Basisanforderungen</text>
+  <line x1="960" y1="474" x2="960" y2="510" stroke="var(--secC)" stroke-width="1.2"/>
+  <path d="M905,510 L1015,510" stroke="#ccc" stroke-width="1.5"/>
+  <line x1="905" y1="510" x2="905" y2="540" stroke="var(--secC)" stroke-width="1"/>
+  <line x1="1015" y1="510" x2="1015" y2="540" stroke="var(--secC-mid)" stroke-width="1"/>
+  <rect x="830" y="540" width="150" height="40" rx="3" fill="var(--secC-fill)" stroke="var(--secC)" stroke-width="1"/>
+  <text class="node-label" x="905" y="555" fill="var(--secC)" font-size="11">Brückenangebot</text>
+  <text class="node-sub" x="905" y="570">1-year bridge course</text>
+  <rect x="950" y="540" width="130" height="40" rx="3" fill="var(--secC-fill)" stroke="var(--secC-mid)" stroke-width="1"/>
+  <text class="node-label" x="1015" y="555" fill="var(--secC-mid)" font-size="11">EBA Lehre (direct)</text>
+  <text class="node-sub" x="1015" y="570">Basic apprenticeship</text>
+  <line x1="905" y1="580" x2="905" y2="615" stroke="var(--secC)" stroke-width="1"/>
+  <path d="M855,615 L955,615" stroke="#ccc" stroke-width="1"/>
+
+  <line x1="855" y1="615" x2="855" y2="640" stroke="var(--secC)" stroke-width="1"/>
+  <circle cx="855" cy="640" r="4" fill="var(--secC)"/>
+  <text class="tip" x="867" y="640" fill="var(--secC)">Practical &amp; Manual Trades</text>
+  <text class="tip-sub" x="867" y="658">Retail Specialist · CHF 65k</text>
+  <text class="tip-sub" x="867" y="671">Truck Driver · CHF 70k</text>
+  <text class="tip-sub" x="867" y="684">Bricklayer · CHF 76k</text>
+  <text class="tip-sub" x="867" y="697">Painter / Gipser · CHF 70k</text>
+
+  <line x1="905" y1="615" x2="905" y2="730" stroke="var(--secC)" stroke-width="1"/>
+  <circle cx="905" cy="730" r="4" fill="var(--secC)"/>
+  <text class="tip" x="917" y="730" fill="var(--secC)">Service Roles</text>
+  <text class="tip-sub" x="917" y="748">Hairdresser · CHF 60k</text>
+  <text class="tip-sub" x="917" y="761">Waiter · CHF 62k</text>
+  <text class="tip-sub" x="917" y="774">Security Guard · CHF 62k</text>
+  <text class="tip-sub" x="917" y="787">Gardener · CHF 72k</text>
+
+  <line x1="955" y1="615" x2="955" y2="820" stroke="var(--secC)" stroke-width="1"/>
+  <circle cx="955" cy="820" r="4" fill="var(--secC)"/>
+  <text class="tip" x="967" y="820" fill="var(--secC)">Facility &amp; Care</text>
+  <text class="tip-sub" x="967" y="838">Childcare (FaBe) · CHF 68k</text>
+  <text class="tip-sub" x="967" y="851">Flight Attendant · CHF 65k</text>
+  <text class="tip-sub" x="967" y="864">Firefighter · CHF 95k</text>
+
+  <line x1="1015" y1="580" x2="1015" y2="897" stroke="var(--secC-mid)" stroke-width="1" stroke-dasharray="4 3"/>
+  <circle cx="1015" cy="897" r="4" fill="var(--secC-mid)"/>
+  <text class="tip" x="1027" y="897" fill="var(--secC-mid)">Facility &amp; Manual Services</text>
+  <text class="tip-sub" x="1027" y="915">Security Guard · CHF 62k</text>
+  <text class="tip-sub" x="1027" y="928">Retail Specialist · CHF 65k</text>
+
+  <!-- Cross-track bridge -->
+  <path d="M875,452 Q840,452 820,490 Q800,525 780,452" stroke="var(--bridge)" stroke-width="0.8" fill="none" stroke-dasharray="3 4"/>
+
+  <!-- Nachholbildung EFZ -->
+  <rect x="850" y="960" width="200" height="44" rx="4" fill="var(--bridge-fill)" stroke="var(--bridge)" stroke-width="1"/>
+  <text class="node-label" x="950" y="978" fill="var(--bridge)" font-size="11" font-family="'Playfair Display',serif" font-style="italic">Nachholbildung EFZ</text>
+  <text class="node-sub" x="950" y="993">Adult EFZ pathway (Art. 32/33)</text>
+  <line x1="950" y1="1004" x2="950" y2="1030" stroke="var(--bridge)" stroke-width="1"/>
+  <circle cx="950" cy="1030" r="4" fill="var(--bridge)"/>
+  <text class="tip" x="962" y="1030" fill="var(--bridge)">Berufsmatura (later)</text>
+  <text class="tip-sub" x="962" y="1048">→ FH access via adult pathway</text>
+
+  <!-- Convergence -->
+  <rect x="380" y="1349" width="240" height="44" rx="4" fill="#f5f5f5" stroke="#999" stroke-width="1.2"/>
+  <text class="node-label" x="500" y="1367" fill="#333" font-size="12" font-family="'Playfair Display',serif" font-style="italic">Senior Careers (all paths)</text>
+  <text class="node-sub" x="500" y="1384">Experience &gt; formal degree over time</text>
+
+  <text x="120" y="1429" font-family="'DM Mono',monospace" font-size="8" fill="#aaa" letter-spacing="0.08em">Note: Pathways vary by canton. Salaries: median gross CHF/yr · FSO / jobs.ch 2024. Cross-track mobility exists at multiple stages.</text>
+  <text x="1170" y="30" font-family="'DM Mono',monospace" font-size="8" fill="#ddd" text-anchor="end" letter-spacing="0.2em">CH.EDU.2026</text>
+
+</svg>
+</div>
+</body>
+</html>
