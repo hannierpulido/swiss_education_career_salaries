@@ -112,3 +112,81 @@
     <div class="card-title">Salary Bubble Chart</div>
     <div class="card-desc">
       ~80 Swiss professions plotted by median annual gross salary,
+      grouped by education track. Bubble size encodes workforce in Switzerland.
+    </div>
+    <div class="card-meta">A3 landscape · print-ready · hover for details</div>
+  </a>
+</div>
+
+<!-- README CONTENT -->
+<section class="readme-section">
+  <h2>About this project</h2>
+
+  <p><strong>Swiss Education &amp; Career Salaries</strong> combines two interactive visualizations of the Swiss school system and the careers it leads to.</p>
+
+  <h3>Why this project?</h3>
+  <p>
+    My daughter came home one evening with a simple question:
+    <em>"Papa, what jobs can I do depending on which school I go to?"</em>
+  </p>
+
+  <p>
+    We are immigrants in Switzerland, and like many families who didn't grow up here,
+    the Swiss education system is still a mystery to us. In sixth grade — around age 12 —
+    children face one of the earliest and most consequential academic forks of their lives.
+    They can sit the <em>Aufnahmeprüfung</em> (admission exam) for the Gymnasium, the
+    academic track that leads directly to university.
+  </p>
+
+  <p>
+    Those who do and pass enter the Langgymnasium; those who don't follow one of the
+    Sekundarschule tracks — A, B, or C — each opening different doors to apprenticeships,
+    vocational schools, and applied universities.
+  </p>
+
+  <p>I didn't have a good answer for her. So I built one.</p>
+
+  <p>
+    The <strong>phylogenetic tree</strong> maps each school track to the careers it typically leads to,
+    drawn in the style of an evolutionary tree — branches diverging from a common root,
+    each path lengthening with time and specialisation. Switzerland's system is permeable:
+    a motivated student on the Sek‑B track can upgrade to an EFZ, pass the Berufsmatura,
+    and reach a Fachhochschule. The Passerelle exam even allows FH graduates to enter university.
+  </p>
+
+  <p>
+    The <strong>bubble chart</strong> adds the economic dimension. The link between education and earnings
+    is one of the most replicated findings in economics: each additional year of schooling
+    raises lifetime earnings by 8–13%. OECD data (2023) shows that tertiary‑educated adults
+    in Switzerland earn roughly 60% more than those with only upper‑secondary qualifications.
+    Each bubble represents a profession, sized by workforce, coloured by track,
+    and positioned by median gross annual salary (FSO / jobs.ch 2024 data).
+  </p>
+
+  <p>
+    Together, the two charts answer my daughter's question honestly:
+    <em>here are your paths, and here is roughly where each tends to lead — both in what you will do and what you will earn.</em>
+  </p>
+
+  <h3>Visualizations</h3>
+  <ul>
+    <li><a href="tree.html"><code>tree.html</code></a> — Phylogenetic career tree · A3 landscape · print‑ready</li>
+    <li><a href="bubbles.html"><code>bubbles.html</code></a> — Salary bubble chart · ~80 professions · A3 landscape</li>
+  </ul>
+
+  <h3>Data sources</h3>
+  <ul>
+    <li>Salaries: Swiss Federal Statistical Office (FSO) 2024, jobs.ch, Glassdoor, SalaryExpert</li>
+    <li>Workforce estimates: FSO Labour Force Survey 2023</li>
+    <li>Card (1999), <em>The causal effect of education on earnings</em>, Handbook of Labor Economics</li>
+    <li>Oreopoulos &amp; Petronijevic (2013), <em>Making college worth it</em>, Journal of Economic Perspectives</li>
+    <li>OECD (2023), <em>Education at a Glance</em></li>
+  </ul>
+</section>
+
+<footer>
+  Median gross annual CHF · FSO 2024, jobs.ch, Glassdoor, SalaryExpert · CH.EDU.2026
+</footer>
+
+</body>
+</html>
