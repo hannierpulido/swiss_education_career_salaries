@@ -168,10 +168,24 @@
   }
 
   @media print {
-    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    @page { size: A3 landscape; margin: 8mm; }
+    /* ── Fit to single A3 portrait page ─────────────────────────────────────
+       A3 portrait @ 96 dpi, 8 mm margins = 1062 × 1527 px printable area.
+       Full page content (header + tree) ≈ 1240 px wide × 1569 px tall.
+       Width is the limiting axis: scale = 1062 / 1240 = 0.8565
+       At that scale height = 1344 px — well within 1527 px.
+    ── */
+    @page { size: A3 portrait; margin: 8mm; }
+    body {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      margin: 0; padding: 0;
+      transform-origin: top left;
+      transform: scale(0.856);
+      /* Compensate so browser doesn't reserve unscaled width (→ no 2nd page) */
+      width: 116.8%;
+    }
     .tree-container { overflow: visible; }
-    svg { width: 100% !important; height: auto !important; }
+    .tip { display: none; }
   }
 </style>
 </head>
